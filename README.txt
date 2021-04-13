@@ -1,0 +1,1 @@
+in order to use the script, you need to open the config.ini file and fill in all the fields correctly

@@ -1,78 +1,81 @@
 '''
-
+the script works functionally, the necessary attributes are taken and
+placed in the attributes of the Stars class to avoid unwanted use of a lot of index
 '''
-import  math
-import  datetime
-import  sort_module
-import  star_search
+import configparser
+import math
+import datetime
+import sort_module
+import star_search
+import stars
 
-datafile='/home/davit/Documents/Projects/Astronomy_task_python/cleaned_stars.tsv'
-fov_v=100
-fov_h=70
-ra_user=50
-dec_user=50
-n=20
+config = configparser.ConfigParser()
+config.read('config.ini')
 
-index_id=2
-index_ra=38
-index_dec=39
-index_mag=35
-index_flux=32
+datafile = config['USER']['datafile']
+fov_v = float(config['USER']['fov_v'])
+fov_h = float(config['USER']['fov_h'])
+ra_user = float(config['USER']['ra_user'])
+dec_user = float(config['USER']['dec_user'])
+n = int(config['USER']['n'])
+
+INDEX_ID = 2
+INDEX_RA = 38
+INDEX_DEC = 39
+INDEX_MAG = 35
+INDEX_FLUX = 14
+
 
 def open_tsv():
     with open(datafile) as fd:
-        list_of_DB=[]
+        list_of_DB = []
+        next(fd)
         for row in fd:
-            #if len(row.split('\t')) !=1:
-            list_row=row[:-1].split('\t')
-            list_of_DB.append([list_row[index_id],list_row[index_ra],list_row[index_dec], list_row[index_mag], list_row[index_flux]])
+            list_row = row[:-1].split('\t')
+            list_of_DB.append(
+                stars.Stars(
+                    int(list_row[INDEX_ID]),
+                    float(list_row[INDEX_RA]),
+                    float(list_row[INDEX_DEC]),
+                    float(list_row[INDEX_MAG]),
+                    float(list_row[INDEX_FLUX]),
+                )
+            )
     return list_of_DB
 
+
 def n_high_mag(array, n):
-    n_high_mag_list=[]
+    '''the function returns the n brightest stars in the field of view'''
+    n_high_mag_list = []
     for i in range(n):
         n_high_mag_list.append(array[i])
     return n_high_mag_list
 
 
-def calc_distanc_append_in_tab(array,index_mag):
-    dist_sirius=8.64
-    for row in array:
-        dist=dist_sirius * math.sqrt(2.72**(-0.4*(-1.47-float(row[index_mag]))))
-        row.append(dist)
-    return array
+def calc_distanc_append_in_tab(star_array):
+    '''the calculation logic comes from the principle m1-m2 = -2.5lg (l1 / l2) I took the
+    famous star Sirius and compared it with the stars in our database'''
+    dist_sirius = 8.64
+    for star in star_array:
+        star.distance = dist_sirius * math.sqrt(2.72 ** (-0.4 * (-1.47 - float(star.mag))))
+
+    return star_array
 
 
-def append_header(array):
-    outpt_array_final=[[open_tsv()[0][0],open_tsv()[0][1],open_tsv()[0][2],open_tsv()[0][3],open_tsv()[0][4],'distance']]
-    for row in array:
-        outpt_array_final.append(row)
-    return outpt_array_final
-
-
-
-def creat_result(array):
+def creat_result(star_array):
     with open(f'{datetime.datetime.now()}.csv', 'w') as csv_temp:
-
-        for i in array:
-            for j in i:
-                csv_temp.write(f'{j}\t')
-            csv_temp.write('\n')
+        csv_temp.write('id \t ra\t dec\t mag\t flux \t distance \n')
+        for star in star_array:
+            csv_temp.write(f'{star.id}\t{star.ra}\t{star.dec}\t{star.mag}\t{star.flux}\t{star.distance}\n')
 
 
+my_key = lambda s: -s.mag
 
+tsv_to_list = open_tsv()
+searched_stars = star_search.search_stars(tsv_to_list, ra_user, dec_user, fov_v, fov_h)
+sort_by_mag = sort_module.quicksort(searched_stars, key=my_key)
+n_sorted = n_high_mag(sort_by_mag, n)
+calc_dist_append = calc_distanc_append_in_tab(n_sorted)
 
-
-
-tsv_to_list=open_tsv()
-searched_stars=star_search.search_stars(tsv_to_list,ra_user,dec_user,fov_v,fov_h,index_ra=1,index_dec=2)
-sort_by_mag=sort_module.quicksort(searched_stars,3)
-n_sorted=n_high_mag(sort_by_mag,n)
-calc_dist_append=calc_distanc_append_in_tab(n_sorted,3)
-final_list=append_header(calc_dist_append)
-
-
-
-creat_result(final_list)
-
-
+if __name__ == "__main__":
+    creat_result(calc_dist_append)
