@@ -19,29 +19,35 @@ ra_user = float(config['USER']['ra_user'])
 dec_user = float(config['USER']['dec_user'])
 n = int(config['USER']['n'])
 
-INDEX_ID = 2
-INDEX_RA = 38
-INDEX_DEC = 39
-INDEX_MAG = 35
-INDEX_FLUX = 14
+INDEX_ID = 7
+INDEX_RA = 0
+INDEX_DEC = 1
+INDEX_MAG = 22
+INDEX_FLUX = 20
 
 
 def open_tsv():
     with open(datafile) as fd:
         list_of_DB = []
         next(fd)
+
         for row in fd:
             list_row = row[:-1].split('\t')
-            list_of_DB.append(
-                stars.Stars(
-                    int(list_row[INDEX_ID]),
-                    float(list_row[INDEX_RA]),
-                    float(list_row[INDEX_DEC]),
-                    float(list_row[INDEX_MAG]),
-                    float(list_row[INDEX_FLUX]),
+            try:
+                list_of_DB.append(
+                    stars.Stars(
+                        float(list_row[INDEX_ID]),
+                        float(list_row[INDEX_RA]),
+                        float(list_row[INDEX_DEC]),
+                        float(list_row[INDEX_MAG]),
+                        float(list_row[INDEX_FLUX]),
+                    )
                 )
-            )
-    return list_of_DB
+            except ValueError:
+                pass
+
+
+        return list_of_DB
 
 
 def n_high_mag(array, n):
