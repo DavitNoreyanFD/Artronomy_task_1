@@ -1,0 +1,8 @@
+text.txt
+*.py[c,o,d]
+__pycache__
+*.csv
+*.tsv
+cleaned_stars.tsv
+test.py
+new_test.py
