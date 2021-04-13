@@ -4,11 +4,11 @@ rectangle and its dimensions are fov_h and fov_v, respectively, and the directio
 of this rectangle
 '''
 
-def search_stars(array,ra_user,dec_user,fov_v,fov_h):
+def search_stars(array,ra_user,dec_user,fov_v,fov_h,index_ra,index_dec):
     stars_in_fov=[]
     for row in array:
         try:
-            if (ra_user-fov_v/2)<float(row[0])<(ra_user+fov_v/2) and (dec_user-fov_h/2)<float(row[1])<(dec_user+fov_h/2):
+            if (ra_user-fov_v/2)<float(row[index_ra])<(ra_user+fov_v/2) and (dec_user-fov_h/2)<float(row[index_dec])<(dec_user+fov_h/2):
                 stars_in_fov.append(row)
         except ValueError:
             pass
